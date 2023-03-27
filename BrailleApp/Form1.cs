@@ -266,7 +266,8 @@ namespace BrailleApp
             {
                 if (skipped.Any(c => richTextBox2.Text.Contains(c)))
                 {
-                    richTextBox3.Text = "Special characters are not allowed.";
+                    label4.Visible = true;
+                    label4.Text = "Special characters are not allowed.";
                     return;
                 }
                 HttpClient client = new HttpClient();
@@ -274,20 +275,23 @@ namespace BrailleApp
                 string textpattern = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
                 {
+                    label4.Visible = false;
                     richTextBox3.Text = textpattern;
                 }
                 else if(richTextBox2.Text == null || richTextBox2.Text == "")
                 {
-                    richTextBox3.Text = "can't be empty";
+                    label4.Visible = true;
+                    label4.Text = "can't be empty";
                 }
                 else
                 {
-                    richTextBox3.Text = "Error";
+                    label4.Visible = true;
+                    label4.Text = "Error";
                 }
             }
             catch (Exception ex)
             {
-                richTextBox3.Text = ex.Message;
+                label4.Text = ex.Message;
             }
 
         }
