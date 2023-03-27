@@ -19,7 +19,15 @@ namespace BrailleApp
         {
             InitializeComponent();
             //ComboBox comboBox = new ComboBox();
-            ShapesItem();       
+            ShapesItem();
+
+            timer1.Tick += Timer1_Tick;
+            timer1.Enabled = false;
+        }
+        private void Timer1_Tick(object sender, EventArgs e)
+        {
+            label3.Visible = false;
+            timer1.Enabled = false;
         }
 
         private void ShapesItem()
@@ -70,6 +78,12 @@ namespace BrailleApp
                 case "Heart":
                     Heart_Shape();
                     break;
+                case "Left arrow":
+                    LeftArrow_Shape();
+                    break;
+                case "Right arrow":
+                    RightArrow_Shape();
+                    break;
                 default:           
                     break;
             }
@@ -91,7 +105,10 @@ namespace BrailleApp
             }
             errorLabel.Hide();
             errorLabel.Text = "";
+            richTextBox1.SelectionAlignment = HorizontalAlignment.Center;
+
             comboBox1_SelectedIndexChanged(sender,e);
+
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
@@ -189,7 +206,18 @@ namespace BrailleApp
         private void Heart_Shape()
         {
             Parms("Size", "", false);
+        }
 
+        //LeftArrow
+        private void LeftArrow_Shape()
+        {
+            Parms("Size", "", false);
+        }
+
+        //RightArrow
+        private void RightArrow_Shape()
+        {
+            Parms("Size", "", false);
         }
 
         //Get Api data
@@ -215,6 +243,76 @@ namespace BrailleApp
             
         }
 
-        
+        private void richTextBox1_TextChanged_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            string text = richTextBox2.Text;
+            string url = $"http://localhost:8089/Text/api/text/{text}";
+            GetApiText(url);
+        }
+
+        private async void GetApiText(string url)
+        {
+            string[] skipped = new string[]
+            {
+            "!","@","#","$","%","^","&","*","(",")"
+            };
+
+            try
+            {
+                if (skipped.Any(c => richTextBox2.Text.Contains(c)))
+                {
+                    richTextBox3.Text = "Special characters are not allowed.";
+                    return;
+                }
+                HttpClient client = new HttpClient();
+                HttpResponseMessage response = await client.GetAsync(url);
+                string textpattern = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    richTextBox3.Text = textpattern;
+                }
+                else if(richTextBox2.Text == null || richTextBox2.Text == "")
+                {
+                    richTextBox3.Text = "can't be empty";
+                }
+                else
+                {
+                    richTextBox3.Text = "Error";
+                }
+            }
+            catch (Exception ex)
+            {
+                richTextBox3.Text = ex.Message;
+            }
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            
+                string textcopy = richTextBox3.Text;
+                if (textcopy == null || textcopy == "")
+                    return;
+
+                Clipboard.SetText(textcopy);
+                label3.Text = "Copied";
+                label3.Visible = true;
+                timer1.Enabled = true;       
+        }
+
+        private void richTextBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            richTextBox2.Text = "";
+        }
     }
 }
