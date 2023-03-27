@@ -9,3 +9,14 @@ C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\obj\Debug\BrailleApp.Propert
 C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\obj\Debug\BrailleApp.csproj.CoreCompileInputs.cache
 C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\obj\Debug\BrailleApp.exe
 C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\obj\Debug\BrailleApp.pdb
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\bin\Debug\BrailleApp.exe.config
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\bin\Debug\BrailleApp.exe
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\bin\Debug\BrailleApp.pdb
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.csproj.AssemblyReference.cache
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.csproj.SuggestedBindingRedirects.cache
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.Form1.resources
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.Properties.Resources.resources
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.csproj.GenerateResource.cache
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.csproj.CoreCompileInputs.cache
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.exe
+D:\2nd year 2nd sem\Project\BrailleWindowsApp-1\BrailleApp\obj\Debug\BrailleApp.pdb
