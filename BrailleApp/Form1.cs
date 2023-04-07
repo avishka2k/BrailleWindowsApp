@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -12,6 +14,7 @@ using System.Speech.Synthesis;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Google.Cloud.Speech.V1;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BrailleApp
@@ -22,14 +25,10 @@ namespace BrailleApp
         SpeechSynthesizer speech = new SpeechSynthesizer();
         public Form1()
         {
-            InitializeComponent();
-
-            SpeechAi();
-            ShapesItem();
-            comboBox2Item();
-            comboBox2.SelectedItem = comboBox2.Items[1];
+            InitializeComponent();        
+            comboBoxItems();
             timer1.Tick += Timer1_Tick;
-            timer1.Enabled = false;
+            timer1.Enabled = false;          
         }
         private void Timer1_Tick(object sender, EventArgs e)
         {
@@ -43,11 +42,14 @@ namespace BrailleApp
         string[] shapes = {"Square", "Rectangle", "Pyramid", "Right Triangle", "Left Triangle",
                    "Diamond", "Circle", "Left arrow", "Right arrow", "Hexagon", "Heart","Triangle",
                    "Crown", "Christmas tree", "Wave", "X mark", "Star"};
-        private void ShapesItem()
+        string[] genders = { "Male", "FeMale" };
+        private void comboBoxItems()
         {
           
             Array.Sort(shapes);
             comboBox1.Items.AddRange(shapes);
+            comboBox3.Items.AddRange(genders);
+            comboBox3.SelectedItem = comboBox3.Items[0];
         }
 
         private void tabPage2_Click(object sender, EventArgs e)
@@ -57,9 +59,14 @@ namespace BrailleApp
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             string selectedItem = comboBox1.SelectedItem.ToString();
-            Shapes sp = new Shapes();
-            string text1 = numericUpDown1.Text;
-            string text2 = numericUpDown2.Text;
+            if(selectedItem == "Circle")
+            {
+                pictureBox1.Visible = true;
+            }
+            else
+            {
+                pictureBox1.Visible = false;
+            }
             switch (selectedItem)
             {
                 case "Square":
@@ -118,7 +125,12 @@ namespace BrailleApp
 
         private void button1_Click(object sender, EventArgs e)
         {
-            VoiceAssistant_Status("Convert");
+            ConvertBtn(sender, e);
+        }
+
+        private void ConvertBtn(object sender, EventArgs e)
+        {
+            
             errorLabel.ForeColor = Color.Red;
             if (comboBox1.SelectedItem == null)
             {
@@ -128,9 +140,8 @@ namespace BrailleApp
             }
             errorLabel.Hide();
             errorLabel.Text = "";
-            richTextBox1.SelectionAlignment = HorizontalAlignment.Center;
 
-            comboBox1_SelectedIndexChanged(sender,e);
+            comboBox1_SelectedIndexChanged(sender, e);
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
@@ -171,14 +182,21 @@ namespace BrailleApp
             GetApi(url);
         }
         //Circle
-        private void Circle_Shape()
+        private async void Circle_Shape()
         {
             Parms("Radius", "", false);
             string textValue1 = numericUpDown1.Text;
-            string textValue2 = "3";
-
-            string url = $"{baseUrl}/circle/{textValue1}/{textValue2}";
-            GetApi(url);
+            int x = 100;
+            int y = 100;
+            string url = $"{baseUrl}/circle/{textValue1}/{x}/{y}";
+            using (HttpClient client = new HttpClient())
+            {
+                HttpResponseMessage response = await client.GetAsync(url);
+                byte[] imageData = await response.Content.ReadAsByteArrayAsync();
+                MemoryStream ms = new MemoryStream(imageData);
+                Image image = Image.FromStream(ms);
+                pictureBox1.Image = image;
+            }
         }
 
         //Triangle
@@ -276,25 +294,22 @@ namespace BrailleApp
                 HttpClient client = new HttpClient();
                 HttpResponseMessage response = await client.GetAsync(url);
                 string dotPattern = await response.Content.ReadAsStringAsync();
+                patternView.Show();
                 if (response.IsSuccessStatusCode)
                 {
-                    richTextBox1.Text = dotPattern;
+                    patternView.Text = dotPattern;
                 }
                 else
                 {
-                    richTextBox1.Text = "Server Error";
+                    patternView.Text = "Server Error";
                 }
             }catch(Exception ex)
             {
-                richTextBox1.Text = ex.Message;
+                patternView.Text = ex.Message;
             }
             
         }
 
-        private void richTextBox1_TextChanged_1(object sender, EventArgs e)
-        {
-
-        }
 
         private void button4_Click(object sender, EventArgs e)
         {
@@ -308,25 +323,27 @@ namespace BrailleApp
             FetchApi fetch = new FetchApi();
             string result = await fetch.GetApiText(url, inputText);
 
-            if (result == "Error")
+            switch (result)
             {
-                label4.Visible = true;
-                label4.Text = "Error";
-            }
-            else if (result == "No_Special_characters")
-            {
-                label4.Visible = true;
-                label4.Text = "Special characters are not allowed.";
-            }
-            else if(result == "Empty")
-            {
-                label4.Visible = true;
-                label4.Text = "Input cannot be empty";
-            }
-            else
-            {
-                label4.Visible = false;
-                richTextBox3.Text = result;
+                case "Error":
+                    label4.Visible = true;
+                    label4.Text = "Error";
+                    break;
+
+                case "No_Special_characters":
+                    label4.Visible = true;
+                    label4.Text = "Special characters are not allowed.";
+                    break;
+
+                case "Empty":
+                    label4.Visible = true;
+                    label4.Text = "Input cannot be empty";
+                    break;
+
+                default:
+                    label4.Visible = false;
+                    richTextBox3.Text = result;
+                    break;
             }
         }
 
@@ -360,24 +377,12 @@ namespace BrailleApp
         }
 
         private void VoiceAssistant_Status(string text) {
-            string item = comboBox2.SelectedItem.ToString();
+            bool item = toggle1.Check;
 
-            if (item == "On")
+            if (item)
             {
                 click_to_speech(text);
             }
-        }
-
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            
-
-
-        }
-        private void comboBox2Item()
-        {
-            comboBox2.Items.Add("On");
-            comboBox2.Items.Add("Off");
         }
 
         private void SpeechAi()
@@ -395,30 +400,78 @@ namespace BrailleApp
             recognitionEngine.SetInputToDefaultAudioDevice();
             recognitionEngine.RecognizeAsync(RecognizeMode.Multiple);
             recognitionEngine.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(recognitionEngine_SpeechRecognized);
-            speech.SelectVoiceByHints(VoiceGender.Male);
         }
         private void recognitionEngine_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             string result = e.Result.Text;
-            if(result == "Convert")
+
+            Dictionary<string, Action> commandActions = new Dictionary<string, Action>
             {
-                button1.PerformClick();
-                result= button1.Text;
+                { "Shaptobraille", () => this.tabControl1.SelectedIndex = 0 },
+                { "Texttobraille", () => this.tabControl1.SelectedIndex = 1 },
+                { "Settings", () => this.tabControl1.SelectedIndex = 2 },
+                { "Convert", button1.PerformClick }
+            };
+
+            if (commandActions.TryGetValue(result, out Action action))
+            {
+                action();
+                speech.SpeakAsync(result);
+                return;
             }
-            foreach (string shape in shapes)
+
+            if (this.tabControl1.SelectedIndex == 0)
             {
-                string modifiedShape = shape.Replace(" ", "?");
-                if (result == modifiedShape)
+                if (TrySetComboBoxIndex(result))
                 {
-                    int index = Array.IndexOf(shapes, shape);
-                    comboBox1.SelectedIndex = index;
-                    result = shape;
-                    break;
+                    speech.SpeakAsync(result);
+                    return;
                 }
             }
-            speech.SpeakAsync(result);
         }
 
+        /*
+        private void recognitionEngine_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            string result = e.Result.Text;
+            
+            switch (result)
+            {
+                case "Shaptobraille":
+                    this.tabControl1.SelectedIndex = 0;
+                    speech.SpeakAsync(result);
+                    break;
+                case "Texttobraille":
+                    this.tabControl1.SelectedIndex = 1;
+                    speech.SpeakAsync(result);
+                    break;
+                case "Settings":
+                    this.tabControl1.SelectedIndex = 2;
+                    speech.SpeakAsync(result);
+                    break;
+            }
+            if (this.tabControl1.SelectedIndex == 0)
+            {
+                if(result == "Convert")
+                {
+                    button1.PerformClick();
+                    speech.SpeakAsync(result);
+                }
+                foreach (string shape in shapes)
+                {
+                    string modifiedShape = shape.Replace(" ", "");
+                    if (result == modifiedShape)
+                    {
+                        int index = Array.IndexOf(shapes, shape);
+                        comboBox1.SelectedIndex = index;
+                        result = shape;
+                        speech.SpeakAsync(result);
+                        return;
+                    }
+                }                
+            }            
+        }
+        */
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
             string value = numericUpDown1.Value.ToString();
@@ -429,6 +482,117 @@ namespace BrailleApp
         {
             string value = numericUpDown2.Value.ToString();
             VoiceAssistant_Status(value);
+        }
+
+        private void printDocument1_PrintPage(object sender, PrintPageEventArgs e)
+        {
+            Graphics g = e.Graphics;
+
+            // Draw the contents of the page using the Graphics object
+            // For example:
+            g.DrawString(patternView.Text, new Font("Arial", 20), Brushes.Black, new PointF(100, 100));
+           // e.Graphics.DrawString(patternView.Text, new Font("Time New Romans", 14), Brushes.Black, new PointF(100,100));
+        }
+
+        private void button5_Click_1(object sender, EventArgs e)
+        {
+            PrintDocument pd = new PrintDocument();
+            if (comboBox1.SelectedItem != null)
+            {
+            string selectedItem = comboBox1.SelectedItem.ToString();
+
+                if (selectedItem == "Circle")
+                {
+                    pd.PrintPage += new PrintPageEventHandler(PrintImage);
+                    PrintDialog printDialog = new PrintDialog();
+                    printDialog.Document = pd;
+                    if (printDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        pd.Print();
+                    }
+                }
+                else if (label5.Text == null)
+                {
+                    pd.PrintPage += new PrintPageEventHandler(this.printDocument1_PrintPage);
+                    PrintDialog printDialog = new PrintDialog();
+                    printDialog.Document = pd;
+
+                    if (printDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        pd.Print();
+                    }
+                }
+            }
+        }
+        private void PrintImage(object sender, PrintPageEventArgs e)
+        {
+            Image image = pictureBox1.Image;
+            float aspectRatio = (float)image.Width / (float)image.Height;
+            float newWidth = e.MarginBounds.Width;
+            float newHeight = newWidth / aspectRatio;
+            if (newHeight > e.MarginBounds.Height)
+            {
+                newHeight = e.MarginBounds.Height;
+                newWidth = newHeight * aspectRatio;
+            }
+            RectangleF destRect = new RectangleF(e.MarginBounds.Left, e.MarginBounds.Top, newWidth, newHeight);
+            e.Graphics.DrawImage(image, destRect);
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            //if(patternView!= null)
+               // ConvertRichTextBoxToJpg(patternView.Text);
+        }
+     
+
+        private void ConvertRichTextBoxToJpg(RichTextBox richTextBox)
+        {
+            Bitmap bitmap = new Bitmap(richTextBox.Width, richTextBox.Height);
+
+            Graphics graphics = Graphics.FromImage(bitmap);
+
+            graphics.DrawString(richTextBox.Text, richTextBox.Font, Brushes.White, new PointF(0, 0));
+
+            string fileName = Path.GetRandomFileName();
+            fileName = Path.ChangeExtension(fileName, ".jpg");
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = fileName;
+            saveFileDialog.Filter = "JPG files (*.jpg)|*.jpg";
+            saveFileDialog.Title = "Save file as...";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {             
+                bitmap.Save(saveFileDialog.FileName, ImageFormat.Jpeg);
+            }
+        }
+
+        private void toggleButton1_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+        private void toggle1_CheckChange(object sender, EventArgs e)
+        {
+            bool toggle = toggle1.Check;
+            if (toggle)
+            {
+                SpeechAi();
+            }
+        }
+
+        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string comboBox3selectedItem = comboBox3.SelectedItem.ToString();
+
+            if (comboBox3selectedItem == "Male")
+                speech.SelectVoiceByHints(VoiceGender.Male);
+            else
+                speech.SelectVoiceByHints(VoiceGender.Female);
         }
     }
 }
