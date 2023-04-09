@@ -37,6 +37,7 @@
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
+            this.toggle1 = new BrailleApp.Toggle();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -47,6 +48,7 @@
             this.button3 = new System.Windows.Forms.Button();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.patternView = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
             this.errorLabel = new System.Windows.Forms.Label();
@@ -59,16 +61,19 @@
             this.label1 = new System.Windows.Forms.Label();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.toggle1 = new BrailleApp.Toggle();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.button6 = new System.Windows.Forms.Button();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.tabPage3.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.tabControl1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.tabPage4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // timer1
@@ -128,6 +133,18 @@
             this.label5.Size = new System.Drawing.Size(108, 18);
             this.label5.TabIndex = 3;
             this.label5.Text = "Voice assistant";
+            // 
+            // toggle1
+            // 
+            this.toggle1.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("toggle1.BackgroundImage")));
+            this.toggle1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.toggle1.Check = false;
+            this.toggle1.Location = new System.Drawing.Point(196, 100);
+            this.toggle1.Margin = new System.Windows.Forms.Padding(4);
+            this.toggle1.Name = "toggle1";
+            this.toggle1.Size = new System.Drawing.Size(56, 25);
+            this.toggle1.TabIndex = 2;
+            this.toggle1.CheckChange += new System.EventHandler(this.toggle1_CheckChange);
             // 
             // tabPage2
             // 
@@ -256,6 +273,14 @@
             this.panel1.Size = new System.Drawing.Size(350, 350);
             this.panel1.TabIndex = 14;
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(-1, 0);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(350, 350);
+            this.pictureBox1.TabIndex = 1;
+            this.pictureBox1.TabStop = false;
+            // 
             // patternView
             // 
             this.patternView.AutoSize = true;
@@ -279,7 +304,7 @@
             this.button5.Size = new System.Drawing.Size(44, 44);
             this.button5.TabIndex = 12;
             this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click_1);
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // errorLabel
             // 
@@ -379,6 +404,7 @@
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
@@ -389,25 +415,41 @@
             this.tabControl1.Size = new System.Drawing.Size(873, 600);
             this.tabControl1.TabIndex = 0;
             // 
-            // pictureBox1
+            // tabPage4
             // 
-            this.pictureBox1.Location = new System.Drawing.Point(-1, 0);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(350, 350);
-            this.pictureBox1.TabIndex = 1;
-            this.pictureBox1.TabStop = false;
+            this.tabPage4.Controls.Add(this.button6);
+            this.tabPage4.Controls.Add(this.dataGridView1);
+            this.tabPage4.Location = new System.Drawing.Point(4, 41);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(865, 555);
+            this.tabPage4.TabIndex = 2;
+            this.tabPage4.Text = "History";
+            this.tabPage4.UseVisualStyleBackColor = true;
             // 
-            // toggle1
+            // button6
             // 
-            this.toggle1.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("toggle1.BackgroundImage")));
-            this.toggle1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.toggle1.Check = false;
-            this.toggle1.Location = new System.Drawing.Point(196, 100);
-            this.toggle1.Margin = new System.Windows.Forms.Padding(4);
-            this.toggle1.Name = "toggle1";
-            this.toggle1.Size = new System.Drawing.Size(56, 25);
-            this.toggle1.TabIndex = 2;
-            this.toggle1.CheckChange += new System.EventHandler(this.toggle1_CheckChange);
+            this.button6.Location = new System.Drawing.Point(697, 27);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(75, 23);
+            this.button6.TabIndex = 1;
+            this.button6.Text = "button6";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // dataGridView1
+            // 
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dataGridView1.BackgroundColor = System.Drawing.Color.White;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.dataGridView1.EnableHeadersVisualStyles = false;
+            this.dataGridView1.Location = new System.Drawing.Point(3, 64);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.RowHeadersWidth = 50;
+            this.dataGridView1.Size = new System.Drawing.Size(859, 488);
+            this.dataGridView1.TabIndex = 0;
+            this.dataGridView1.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellDoubleClick);
             // 
             // Form1
             // 
@@ -426,10 +468,12 @@
             this.tabPage1.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.tabControl1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.tabPage4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -466,6 +510,9 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.DataGridView dataGridView1;
     }
 }
 

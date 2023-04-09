@@ -15,7 +15,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Google.Cloud.Speech.V1;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
+using static Google.Api.ResourceDescriptor.Types;
 
 namespace BrailleApp
 {
@@ -23,12 +27,21 @@ namespace BrailleApp
     {
         string baseUrl = "http://localhost:8089/DotPattern/api";
         SpeechSynthesizer speech = new SpeechSynthesizer();
+        private List<History> history;
+        private int nextId;
+        private string textapiresult;
+        private SettingsCheckBox settingsCheck = new SettingsCheckBox();
+        private GenderSettings genderSettings = new GenderSettings();
         public Form1()
         {
             InitializeComponent();        
             comboBoxItems();
             timer1.Tick += Timer1_Tick;
-            timer1.Enabled = false;          
+            timer1.Enabled = false;
+            LoadData();
+            LoadToggle1();
+            LoadGender();
+            nextId = history.Count > 0 ? history.Max(p => p.Id) + 1 : 1;
         }
         private void Timer1_Tick(object sender, EventArgs e)
         {
@@ -44,12 +57,10 @@ namespace BrailleApp
                    "Crown", "Christmas tree", "Wave", "X mark", "Star"};
         string[] genders = { "Male", "FeMale" };
         private void comboBoxItems()
-        {
-          
+        {     
             Array.Sort(shapes);
             comboBox1.Items.AddRange(shapes);
             comboBox3.Items.AddRange(genders);
-            comboBox3.SelectedItem = comboBox3.Items[0];
         }
 
         private void tabPage2_Click(object sender, EventArgs e)
@@ -126,6 +137,9 @@ namespace BrailleApp
         private void button1_Click(object sender, EventArgs e)
         {
             ConvertBtn(sender, e);
+            SaveHistory();
+
+
         }
 
         private void ConvertBtn(object sender, EventArgs e)
@@ -285,7 +299,7 @@ namespace BrailleApp
         {
             Parms("Size", "", false);
         }
-
+        public string braillePattern = "";
         //Get Api data
         private async void GetApi(string url)
         {
@@ -298,6 +312,7 @@ namespace BrailleApp
                 if (response.IsSuccessStatusCode)
                 {
                     patternView.Text = dotPattern;
+                    braillePattern = dotPattern;
                 }
                 else
                 {
@@ -316,8 +331,9 @@ namespace BrailleApp
             string text = richTextBox2.Text;
             string url = $"http://localhost:8089/Text/api/text";
             GetApiText(url, text);
+            SaveHistory();
         }
-
+        
         private async void GetApiText(string url, string inputText)
         {
             FetchApi fetch = new FetchApi();
@@ -343,6 +359,7 @@ namespace BrailleApp
                 default:
                     label4.Visible = false;
                     richTextBox3.Text = result;
+                    textapiresult = result;
                     break;
             }
         }
@@ -373,7 +390,33 @@ namespace BrailleApp
 
         private void button5_Click(object sender, EventArgs e)
         {
-            //VoiceAssistant_Status("This is test");
+            PrintDocument pd = new PrintDocument();
+            if (comboBox1.SelectedItem != null)
+            {
+                string selectedItem = comboBox1.SelectedItem.ToString();
+
+                if (selectedItem == "Circle")
+                {
+                    pd.PrintPage += new PrintPageEventHandler(PrintImage);
+                    PrintDialog printDialog = new PrintDialog();
+                    printDialog.Document = pd;
+                    if (printDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        pd.Print();
+                    }
+                }
+                else if (patternView.Text != null)
+                {
+                    pd.PrintPage += new PrintPageEventHandler(this.printDocument1_PrintPage);
+                    PrintDialog printDialog = new PrintDialog();
+                    printDialog.Document = pd;
+
+                    if (printDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        pd.Print();
+                    }
+                }
+            }
         }
 
         private void VoiceAssistant_Status(string text) {
@@ -407,10 +450,11 @@ namespace BrailleApp
 
             Dictionary<string, Action> commandActions = new Dictionary<string, Action>
             {
-                { "Shaptobraille", () => this.tabControl1.SelectedIndex = 0 },
-                { "Texttobraille", () => this.tabControl1.SelectedIndex = 1 },
+                { "Shaps", () => this.tabControl1.SelectedIndex = 0 },
+                { "Text", () => this.tabControl1.SelectedIndex = 1 },
                 { "Settings", () => this.tabControl1.SelectedIndex = 2 },
-                { "Convert", button1.PerformClick }
+                { "Convert", button1.PerformClick },
+                { "Print", button5.PerformClick }
             };
 
             if (commandActions.TryGetValue(result, out Action action))
@@ -428,6 +472,18 @@ namespace BrailleApp
                     return;
                 }
             }
+        }
+
+        private bool TrySetComboBoxIndex(string result)
+        {
+            string[] modifiedShapes = shapes.Select(s => s.Replace(" ", "")).ToArray();
+            int index = Array.IndexOf(modifiedShapes, result);
+            if (index != -1)
+            {
+                comboBox1.SelectedIndex = index;
+                return true;
+            }
+            return false;
         }
 
         /*
@@ -487,42 +543,7 @@ namespace BrailleApp
         private void printDocument1_PrintPage(object sender, PrintPageEventArgs e)
         {
             Graphics g = e.Graphics;
-
-            // Draw the contents of the page using the Graphics object
-            // For example:
             g.DrawString(patternView.Text, new Font("Arial", 20), Brushes.Black, new PointF(100, 100));
-           // e.Graphics.DrawString(patternView.Text, new Font("Time New Romans", 14), Brushes.Black, new PointF(100,100));
-        }
-
-        private void button5_Click_1(object sender, EventArgs e)
-        {
-            PrintDocument pd = new PrintDocument();
-            if (comboBox1.SelectedItem != null)
-            {
-            string selectedItem = comboBox1.SelectedItem.ToString();
-
-                if (selectedItem == "Circle")
-                {
-                    pd.PrintPage += new PrintPageEventHandler(PrintImage);
-                    PrintDialog printDialog = new PrintDialog();
-                    printDialog.Document = pd;
-                    if (printDialog.ShowDialog() == DialogResult.OK)
-                    {
-                        pd.Print();
-                    }
-                }
-                else if (label5.Text == null)
-                {
-                    pd.PrintPage += new PrintPageEventHandler(this.printDocument1_PrintPage);
-                    PrintDialog printDialog = new PrintDialog();
-                    printDialog.Document = pd;
-
-                    if (printDialog.ShowDialog() == DialogResult.OK)
-                    {
-                        pd.Print();
-                    }
-                }
-            }
         }
         private void PrintImage(object sender, PrintPageEventArgs e)
         {
@@ -539,11 +560,7 @@ namespace BrailleApp
             e.Graphics.DrawImage(image, destRect);
         }
 
-        private void button6_Click(object sender, EventArgs e)
-        {
-            //if(patternView!= null)
-               // ConvertRichTextBoxToJpg(patternView.Text);
-        }
+        
      
 
         private void ConvertRichTextBoxToJpg(RichTextBox richTextBox)
@@ -583,16 +600,151 @@ namespace BrailleApp
             {
                 SpeechAi();
             }
+            settingsCheck.IsChecked = toggle1.Check;
+            string json = JsonConvert.SerializeObject(settingsCheck);
+            File.WriteAllText("jsondata/checkboxData.json", json);
+        }
+
+        private void LoadToggle1()
+        {
+            try
+            {
+                string json = File.ReadAllText("jsondata/checkboxData.json");
+                settingsCheck = JsonConvert.DeserializeObject<SettingsCheckBox>(json);
+                toggle1.Check = settingsCheck.IsChecked;
+            }
+            catch (FileNotFoundException)
+            {
+                toggle1.Check = false;
+            }
+        }
+        private void LoadGender()
+        {
+            try
+            {
+
+                string json = File.ReadAllText("jsondata/gender.json");
+                genderSettings = JsonConvert.DeserializeObject<GenderSettings>(json);
+                comboBox3.SelectedIndex = genderSettings.Gender;
+            }
+            catch (FileNotFoundException)
+            {
+                comboBox3.SelectedIndex = 0;
+            }
         }
 
         private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
         {
+
+            genderSettings.Gender = comboBox3.SelectedIndex;
+            string json = JsonConvert.SerializeObject(genderSettings);
+            File.WriteAllText("jsondata/gender.json", json);
             string comboBox3selectedItem = comboBox3.SelectedItem.ToString();
 
             if (comboBox3selectedItem == "Male")
                 speech.SelectVoiceByHints(VoiceGender.Male);
             else
                 speech.SelectVoiceByHints(VoiceGender.Female);
+
+            
+
+        }
+
+
+        private void LoadData()
+        {
+            try
+            {
+                string json = File.ReadAllText("jsondata/history_data.json");
+                JObject jObject = JObject.Parse(json);
+                JArray jArray = (JArray)jObject["history"];
+                history = jArray.ToObject<List<History>>();
+            }
+            catch (FileNotFoundException)
+            {
+                history = new List<History>();
+            }
+
+            dataGridView1.DataSource = history;
+        }
+
+        private void SaveData()
+        {
+            JObject jObject = new JObject();
+            JArray jArray = new JArray();
+            jObject.Add("history", jArray);
+            foreach (History employee in history)
+            {
+                JObject jEmployee = new JObject
+                {
+                    { "id", employee.Id },
+                    { "type", employee.Type },
+                    { "parameter1", employee.Parameter1 },
+                    { "parameter2", employee.Parameter2 },
+                    { "braille", employee.Braille },
+                    { "createdDateTime", employee.CreatedDateTime }
+                };
+                jArray.Add(jEmployee);
+            }
+
+            string json = jObject.ToString();
+            File.WriteAllText("jsondata/history_data.json", json);
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            history.Clear();
+            dataGridView1.DataSource = null;
+            dataGridView1.DataSource = history;
+            SaveData();
+        }
+
+
+        private void SaveHistory()
+        {
+            int parameter1 = (int)numericUpDown1.Value;
+            string parameter2 = numericUpDown2.Value.ToString();
+            if (numericUpDown1.Value == 0)
+                parameter2 = "N/A";
+            if (numericUpDown2.Value == 0)
+                parameter2 = "N/A";
+
+            int currentTab = this.tabControl1.SelectedIndex;
+            string type = "";
+            string braille = "";
+            if (currentTab == 0)
+            {
+                type = "Shapes";
+                braille = patternView.Text;
+            }
+            else if (currentTab == 1) 
+            {
+                type = "Text";
+                braille = textapiresult;
+            }
+
+            History employee = new History { Id = nextId++, Type = type, Braille = braille, Parameter1 = parameter1, Parameter2 = parameter2, CreatedDateTime = DateTime.Now };
+            history.Add(employee);
+
+            dataGridView1.DataSource = null;
+            dataGridView1.DataSource = history;
+
+            SaveData();
+        }
+
+        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int rowIndex = e.RowIndex;
+
+            // Check if a row is selected
+            if (rowIndex >= 0)
+            {
+                History emp = dataGridView1.Rows[e.RowIndex].DataBoundItem as History;
+
+                // Get the data from the selected row
+                HistoryForm form3 = new HistoryForm(emp);
+                form3.ShowDialog();
+            }
         }
     }
 }
