@@ -95,3 +95,4 @@ C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\bin\Debug\System.Runtime.Com
 C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\bin\Debug\System.Threading.Tasks.Extensions.xml
 C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\bin\Debug\System.ValueTuple.xml
 C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\obj\Debug\BrailleApp.csproj.CopyComplete
+C:\Users\avish\Desktop\SE-Lab\BrailleApp\BrailleApp\obj\Debug\BrailleApp.HistoryForm.resources
