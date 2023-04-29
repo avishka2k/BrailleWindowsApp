@@ -14,6 +14,5 @@ namespace BrailleApp
         public string Parameter2 { get; set; }
         public string Braille { get; set; }
         public DateTime CreatedDateTime { get; set; }
-
     }
 }
