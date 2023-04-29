@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -8,18 +7,11 @@ using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection.Emit;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Google.Cloud.Speech.V1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
-using static Google.Api.ResourceDescriptor.Types;
 
 namespace BrailleApp
 {
@@ -30,6 +22,7 @@ namespace BrailleApp
         private List<History> history;
         private int nextId;
         private string textapiresult;
+        private string braillePattern;
         private SettingsCheckBox settingsCheck = new SettingsCheckBox();
         private GenderSettings genderSettings = new GenderSettings();
         public Form1()
@@ -299,7 +292,7 @@ namespace BrailleApp
         {
             Parms("Size", "", false);
         }
-        public string braillePattern = "";
+        
         //Get Api data
         private async void GetApi(string url)
         {
@@ -316,7 +309,7 @@ namespace BrailleApp
                 }
                 else
                 {
-                    patternView.Text = "Server Error";
+                    patternView.Text = "Error";
                 }
             }catch(Exception ex)
             {
@@ -333,7 +326,7 @@ namespace BrailleApp
             GetApiText(url, text);
             SaveHistory();
         }
-        
+
         private async void GetApiText(string url, string inputText)
         {
             FetchApi fetch = new FetchApi();
@@ -366,15 +359,15 @@ namespace BrailleApp
 
         private void button3_Click(object sender, EventArgs e)
         {
-            
-                string textcopy = richTextBox3.Text;
-                if (textcopy == null || textcopy == "")
-                    return;
 
-                Clipboard.SetText(textcopy);
-                label3.Text = "Copied";
-                label3.Visible = true;
-                timer1.Enabled = true;       
+            string textcopy = richTextBox3.Text;
+            if (textcopy == null || textcopy == "")
+                return;
+
+            Clipboard.SetText(textcopy);
+            label3.Text = "Copied";
+            label3.Visible = true;
+            timer1.Enabled = true;
         }
 
         private void richTextBox3_TextChanged(object sender, EventArgs e)
@@ -452,7 +445,8 @@ namespace BrailleApp
             {
                 { "Shaps", () => this.tabControl1.SelectedIndex = 0 },
                 { "Text", () => this.tabControl1.SelectedIndex = 1 },
-                { "Settings", () => this.tabControl1.SelectedIndex = 2 },
+                { "History", () => this.tabControl1.SelectedIndex = 2 },
+                { "Settings", () => this.tabControl1.SelectedIndex = 3 },
                 { "Convert", button1.PerformClick },
                 { "Print", button5.PerformClick }
             };
@@ -560,20 +554,13 @@ namespace BrailleApp
             e.Graphics.DrawImage(image, destRect);
         }
 
-        
-     
-
         private void ConvertRichTextBoxToJpg(RichTextBox richTextBox)
         {
             Bitmap bitmap = new Bitmap(richTextBox.Width, richTextBox.Height);
-
             Graphics graphics = Graphics.FromImage(bitmap);
-
             graphics.DrawString(richTextBox.Text, richTextBox.Font, Brushes.White, new PointF(0, 0));
-
             string fileName = Path.GetRandomFileName();
             fileName = Path.ChangeExtension(fileName, ".jpg");
-
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.FileName = fileName;
             saveFileDialog.Filter = "JPG files (*.jpg)|*.jpg";
@@ -622,7 +609,6 @@ namespace BrailleApp
         {
             try
             {
-
                 string json = File.ReadAllText("jsondata/gender.json");
                 genderSettings = JsonConvert.DeserializeObject<GenderSettings>(json);
                 comboBox3.SelectedIndex = genderSettings.Gender;
@@ -635,7 +621,6 @@ namespace BrailleApp
 
         private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
         {
-
             genderSettings.Gender = comboBox3.SelectedIndex;
             string json = JsonConvert.SerializeObject(genderSettings);
             File.WriteAllText("jsondata/gender.json", json);
@@ -645,11 +630,7 @@ namespace BrailleApp
                 speech.SelectVoiceByHints(VoiceGender.Male);
             else
                 speech.SelectVoiceByHints(VoiceGender.Female);
-
-            
-
         }
-
 
         private void LoadData()
         {
@@ -686,7 +667,6 @@ namespace BrailleApp
                 };
                 jArray.Add(jEmployee);
             }
-
             string json = jObject.ToString();
             File.WriteAllText("jsondata/history_data.json", json);
         }
@@ -698,7 +678,6 @@ namespace BrailleApp
             dataGridView1.DataSource = history;
             SaveData();
         }
-
 
         private void SaveHistory()
         {
@@ -722,29 +701,51 @@ namespace BrailleApp
                 type = "Text";
                 braille = textapiresult;
             }
-
-            History employee = new History { Id = nextId++, Type = type, Braille = braille, Parameter1 = parameter1, Parameter2 = parameter2, CreatedDateTime = DateTime.Now };
+            History employee = new History 
+            { 
+                Id = nextId++, Type = type,
+                Braille = braille, 
+                Parameter1 = parameter1, 
+                Parameter2 = parameter2, 
+                CreatedDateTime = DateTime.Now 
+            };
             history.Add(employee);
-
             dataGridView1.DataSource = null;
             dataGridView1.DataSource = history;
-
             SaveData();
         }
 
         private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             int rowIndex = e.RowIndex;
-
-            // Check if a row is selected
             if (rowIndex >= 0)
             {
                 History emp = dataGridView1.Rows[e.RowIndex].DataBoundItem as History;
-
-                // Get the data from the selected row
                 HistoryForm form3 = new HistoryForm(emp);
                 form3.ShowDialog();
             }
         }
-    }
+
+		private void button7_Click(object sender, EventArgs e)
+		{
+			PrintDocument print = new PrintDocument();
+			if (patternView.Text != null)
+			{
+				print.PrintPage += new PrintPageEventHandler(this.printDocument2_PrintPage);
+				PrintDialog printDialog = new PrintDialog();
+				printDialog.Document = print;
+
+				if (printDialog.ShowDialog() == DialogResult.OK)
+				{
+					print.Print();
+				}
+			}
+
+		}
+		private void printDocument2_PrintPage(object sender, PrintPageEventArgs e)
+		{
+			Graphics g = e.Graphics;
+			g.DrawString(richTextBox3.Text, new Font("Arial", 20), Brushes.Black, new PointF(100, 100));
+		}
+	}
 }

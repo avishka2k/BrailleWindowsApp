@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
 
+//FetchApi class
 namespace BrailleApp
 {
     public class FetchApi
